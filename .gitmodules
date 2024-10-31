@@ -1,0 +1,3 @@
+[submodule "libgpod"]
+	path = libgpod
+	url = https://github.com/fadingred/libgpod.git
