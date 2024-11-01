@@ -1,6 +1,7 @@
 extern crate libc;
 
 use libc::{c_char, c_void};
+use std::env;
 use std::ffi::{CStr, CString};
 use std::ptr;
 
@@ -81,7 +82,11 @@ fn get_device(ipod_mountpoint: &str) {
 }
 
 fn main() {
-    let ipod_mountpoint = "/mnt/f";
+    let args: Vec<String> = env::args().collect();
+
+    let ipod_mountpoint = args.get(1).expect("Error: provide path to iPod");
+
+    println!("Loading iPod mounted @ {}", ipod_mountpoint);
 
     get_device(ipod_mountpoint);
 
