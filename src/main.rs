@@ -18,14 +18,23 @@ fn get_cstr_from_ptr(ptr: *const c_char) -> String {
     res
 }
 
-fn fetch_tracks(ipod_mountpoint: &str) -> Vec<String> {
+#[derive(Debug)]
+struct Track {
+    title: String,
+    artist: String,
+    album: String,
+}
+
+fn fetch_tracks(ipod_mountpoint: &str) -> Vec<Track> {
     // Convert Rust string to C string
     let c_mountpoint = CString::new(ipod_mountpoint).expect("CString::new failed");
 
-    let mut tracks: Vec<String> = Vec::new();
+    let mut tracks: Vec<Track> = Vec::new();
     unsafe {
         // Open the iPod database
         let db = itdb_parse(c_mountpoint.as_ptr(), ptr::null_mut());
+
+        dbg!((*db));
 
         // if db.is_null() {
         //    eprintln!("Failed to open iPod database.");
@@ -39,12 +48,17 @@ fn fetch_tracks(ipod_mountpoint: &str) -> Vec<String> {
 
             let title = get_cstr_from_ptr((*itdb_track).title);
             let artist = get_cstr_from_ptr((*itdb_track).artist);
+            let album = get_cstr_from_ptr((*itdb_track).album);
 
-            let track_str = format!("{} - \"{}\"", artist, title);
+            let track_struct = Track {
+                title,
+                artist,
+                album,
+            };
 
             track = (*track).next;
 
-            tracks.push(track_str);
+            tracks.push(track_struct);
         }
 
         // Free the iPod database
@@ -54,8 +68,22 @@ fn fetch_tracks(ipod_mountpoint: &str) -> Vec<String> {
     tracks
 }
 
+fn get_device(ipod_mountpoint: &str) {
+    // Convert Rust string to C string
+    let c_mountpoint = CString::new(ipod_mountpoint).expect("CString::new failed");
+    unsafe {
+        let db = itdb_parse(c_mountpoint.as_ptr(), ptr::null_mut());
+        let device = (*db).filename;
+        dbg!(&(*device));
+        itdb_free(db);
+        device
+    };
+}
+
 fn main() {
-    let ipod_mountpoint = "/mnt/f"; // Change this to your iPod's mount point
+    let ipod_mountpoint = "/mnt/f";
+
+    get_device(ipod_mountpoint);
 
     let tracks = fetch_tracks(ipod_mountpoint);
 
